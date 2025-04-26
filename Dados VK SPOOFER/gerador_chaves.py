@@ -18,7 +18,9 @@ def gerar_chave(tipo):
     prefixo = gerar_prefixo()
     
     # Define o sufixo com base no tipo de validade
-    if tipo == "diario":
+    if tipo == "hora":
+        sufixo = "-HORA"
+    elif tipo == "diario":
         sufixo = "-DIARIO"
     elif tipo == "semanal":
         sufixo = "-SEMANAL"
@@ -34,21 +36,27 @@ def gerar_chave(tipo):
     return chave
 
 def main():
-    print("Gerador de Chaves de Acesso")
-    print("1. Diário (24h)")
-    print("2. Semanal (7 dias)")
-    print("3. Mensal (30 dias)")
-    print("4. Lifetime (Permanente)")
+    print("====================================")
+    print("          Gerador de Chaves")
+    print("====================================")
+    print("[1] Gerar chave de 1 hora")
+    print("[2] Gerar chave diária (24h)")
+    print("[3] Gerar chave semanal (7 dias)")
+    print("[4] Gerar chave mensal (30 dias)")
+    print("[5] Gerar chave lifetime (Permanente)")
+    print("====================================")
     
-    escolha = input("Escolha o tipo de chave (1-4): ")
+    escolha = input("Escolha o tipo de chave (1-5): ")
     
     if escolha == "1":
-        tipo = "diario"
+        tipo = "hora"
     elif escolha == "2":
-        tipo = "semanal"
+        tipo = "diario"
     elif escolha == "3":
-        tipo = "mensal"
+        tipo = "semanal"
     elif escolha == "4":
+        tipo = "mensal"
+    elif escolha == "5":
         tipo = "lifetime"
     else:
         print("Opção inválida.")

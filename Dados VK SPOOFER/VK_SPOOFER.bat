@@ -68,7 +68,7 @@ if "%ip%"=="" (
 :: Chama o script Python para registrar o usuario e validar a chave
 python database.py registrar "%nome%" "%senha%" "%chave%" "%ip%"
 if %errorlevel% neq 0 (
-    echo Key invalida ou erro ao registrar.
+    echo Chave invalida ou ja usada. Tente novamente.
     pause
     goto menu
 )
@@ -128,5 +128,10 @@ echo ====================================
 echo        Consultar Tempo de Key
 echo ====================================
 python database.py consultar_tempo_key "%nome%"
+if %errorlevel% neq 0 (
+    echo Erro ao consultar o tempo da chave.
+    pause
+    goto spoofer_global
+)
 pause
 goto spoofer_global

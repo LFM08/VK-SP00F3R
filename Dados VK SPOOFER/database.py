@@ -1,9 +1,11 @@
 import sys
 from datetime import datetime, timedelta
+import requests
 
 # Caminho para os arquivos de banco de dados
 DATABASE_FILE = "usuarios.txt"  # Armazena os usuários registrados
-KEYS_FILE = "chaves.txt"        # Armazena as chaves válidas e seu status
+KEYS_FILE = "C:/Users/LFM/Documents/Dados VK SPOOFER/chaves.txt"  # Altere conforme necessário
+SERVER_URL = "http://127.0.0.1:5000"  # URL do servidor Flask
 
 def inicializar_arquivos():
     """
@@ -35,7 +37,8 @@ def carregar_chaves():
         with open(KEYS_FILE, "r") as file:
             return {line.strip().split(":")[0]: line.strip().split(":")[1] for line in file if line.strip()}
     except FileNotFoundError:
-        return {}
+        print("Arquivo de chaves não encontrado. Certifique-se de configurar o arquivo 'chaves.txt'.")
+        sys.exit(1)
 
 def salvar_chave(chave, status):
     """
@@ -113,6 +116,7 @@ def registrar(nome, senha, chave, ip):
 
     # Salva o usuário no banco de dados
     salvar_usuario(nome, senha, chave, ip)
+    print("Registro realizado com sucesso!")
     return True
 
 def login(nome, senha, ip_atual):
@@ -123,18 +127,22 @@ def login(nome, senha, ip_atual):
     if nome in usuarios and usuarios[nome]["senha"] == senha:
         ip_registrado = usuarios[nome]["ip"]
         if ip_atual == ip_registrado:
+            print("Login bem-sucedido!")
             return True  # Login bem-sucedido
         else:
-            print("IP nao autorizado.")
+            print("IP não autorizado.")
             return False  # IP diferente
+    print("Nome ou senha inválidos.")
     return False  # Nome ou senha inválidos
 
 def calcular_tempo_restante(chave, data_registro):
     """
-    Calcula o tempo restante da chave com base no sufixo (-DIARIO, -SEMANAL, etc.).
+    Calcula o tempo restante da chave com base no sufixo (-HORA, -DIARIO, etc.).
     Retorna uma mensagem indicando o tempo restante ou se a chave expirou.
     """
-    if chave.endswith("-DIARIO"):
+    if chave.endswith("-HORA"):
+        duracao = timedelta(hours=1)
+    elif chave.endswith("-DIARIO"):
         duracao = timedelta(days=1)
     elif chave.endswith("-SEMANAL"):
         duracao = timedelta(days=7)
@@ -174,6 +182,22 @@ def consultar_tempo_key():
     tempo_restante = calcular_tempo_restante(chave, data_registro)
     print(tempo_restante)
 
+def validar_chave_no_servidor(chave):
+    """
+    Valida a chave no servidor Flask.
+    Retorna True se a chave for válida, False caso contrário.
+    """
+    try:
+        response = requests.post(f"{SERVER_URL}/validar_chave", json={"chave": chave})
+        if response.status_code == 200:
+            return response.json().get("status") == "valida"
+        else:
+            print(f"Erro ao validar chave: {response.json().get('mensagem')}")
+            return False
+    except Exception as e:
+        print(f"Falha ao conectar ao servidor: {e}")
+        return False
+
 def main():
     inicializar_arquivos()
 
@@ -197,6 +221,12 @@ def main():
         senha = sys.argv[3]
         chave = sys.argv[4]
         ip = sys.argv[5]
+
+        # Adiciona validação centralizada no servidor
+        if not validar_chave_no_servidor(chave):
+            print("Chave inválida ou já usada.")
+            sys.exit(1)
+
         if registrar(nome, senha, chave, ip):
             sys.exit(0)  # Sucesso
         else:
